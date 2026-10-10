@@ -4,7 +4,7 @@ kind: Task
 metadata:
   name: cleanup
 spec:
-  description: Removes all files from the shared pipeline workspace.
+  description: Removes all files from the shared pipeline workspace before a new run.
   workspaces:
     - name: source
   steps:
@@ -21,24 +21,14 @@ kind: Task
 metadata:
   name: jest
 spec:
-  description: Clones the repository and runs the Jest unit tests.
-  params:
-    - name: git-url
-      type: string
-      default: https://github.com/mvadly/ci-cd-final-project.git
-    - name: git-revision
-      type: string
-      default: main
+  description: Runs the Jest unit tests for the Node.js counter service.
   workspaces:
     - name: source
+  params:
+    - name: args
+      type: string
+      default: --runInBand
   steps:
-    - name: clone
-      image: registry.access.redhat.com/ubi8/ubi-minimal:latest
-      workingDir: $(workspaces.source.path)
-      script: |
-        curl -o git.crt https://crt.sh/?d=SEC.crt
-        git config --global http.sslCAInfo $(workspaces.source.path)/git.crt
-        git clone "$(params.git-url)" -b "$(params.git-revision)" ./
     - name: install-dependencies
       image: node:18-alpine
       workingDir: $(workspaces.source.path)
@@ -48,4 +38,4 @@ spec:
       image: node:18-alpine
       workingDir: $(workspaces.source.path)
       script: |
-        npm test
+        npm test $(params.args)
